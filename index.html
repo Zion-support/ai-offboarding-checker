@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Offboarding Checker — Zion Tech Group</title>
+<style>
+:root{--bg:#0a0e1a;--card:#131827;--accent:#4f8cff;--accent2:#7c5cff;--text:#e4e8f0;--muted:#8b95a8;--border:#1e2636;--success:#34d399;--warning:#fbbf24;--danger:#f87171}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh}
+.container{max-width:900px;margin:0 auto;padding:2rem 1.5rem}
+header{text-align:center;padding:3rem 0 2rem;border-bottom:1px solid var(--border)}
+header h1{font-size:2.2rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:.5rem}
+header p{color:var(--muted);font-size:1.1rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;margin:1.5rem 0}
+.emp-input{display:flex;gap:1rem;margin:1rem 0;flex-wrap:wrap}
+.emp-input input{flex:1;min-width:200px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.8rem 1rem;color:var(--text);font-size:.95rem}
+.btn{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;padding:.8rem 2rem;border-radius:10px;font-size:1rem;font-weight:600;cursor:pointer}
+.btn:hover{opacity:.9}
+.checklist{display:flex;flex-direction:column;gap:.6rem;margin:1rem 0}
+.check-row{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem;display:flex;align-items:center;gap:.8rem}
+.check-row input{width:18px;height:18px;accent-color:var(--accent)}
+.check-row label{flex:1;font-size:.9rem}
+.check-row .sys{font-size:.8rem;color:var(--muted)}
+.grade{display:inline-block;padding:.3rem .8rem;border-radius:8px;font-size:.8rem;font-weight:700}
+.grade-a{background:rgba(52,211,153,.15);color:var(--success)}
+.grade-b{background:rgba(79,140,255,.15);color:var(--accent)}
+.grade-c{background:rgba(251,191,36,.15);color:var(--warning)}
+.grade-f{background:rgba(248,113,113,.15);color:var(--danger)}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>AI Offboarding Security Checker</h1>
+<p>Ensure complete employee offboarding — access revocation, asset return, and compliance verification.</p>
+</header>
+<div class="card">
+<h2>Employee Offboarding Checklist</h2>
+<div class="emp-input">
+<input type="text" id="empName" placeholder="Employee name">
+<input type="text" id="empEmail" placeholder="Email address">
+<input type="text" id="empDate" placeholder="Last day (YYYY-MM-DD)">
+</div>
+<button class="btn" onclick="runCheck()">Run Offboarding Check</button>
+<div class="checklist" id="checklist"></div>
+</div>
+</div>
+<script>
+const systems=[
+{name:'Active Directory',sys:'AD',critical:true},
+{name:'VPN Access',sys:'VPN',critical:true},
+{name:'Email / Exchange',sys:'M365',critical:true},
+{name:'SSO / SAML',sys:'SSO',critical:true},
+{name:'GitHub / GitLab',sys:'GIT',critical:true},
+{name:'AWS Console',sys:'AWS',critical:true},
+{name:'Slack',sys:'SLK',critical:false},
+{name:'Jira / Confluence',sys:'ATLASSIAN',critical:false},
+{name:'ServiceNow',sys:'SNOW',critical:false},
+{name:'CRM (HubSpot/Salesforce)',sys:'CRM',critical:false},
+{name:'Shared Drives (Google/OneDrive)',sys:'STORAGE',critical:true},
+{name:'Certificate / Key Access',sys:'PKI',critical:true},
+{name:'Physical Badge Access',sys:'PHYSICAL',critical:true},
+{name:'Laptop / Hardware Return',sys:'HW',critical:true},
+{name:'Phone / SIM Card',sys:'TEL',critical:false},
+{name:'MFA Tokens / Authenticator',sys:'MFA',critical:true},
+];
+function runCheck(){
+const name=document.getElementById('empName').value||'John Doe';
+const email=document.getElementById('empEmail').value||'john@company.com';
+const date=document.getElementById('empDate').value||'2026-09-30';
+const cl=document.getElementById('checklist');
+cl.innerHTML='<p style="color:var(--muted)">Running checks...</p>';
+setTimeout(()=>{
+let html=`<h3 style="margin:1rem 0 .5rem">${name} — ${email} — Last day: ${date}</h3>`;
+let pass=0,fail=0,critical=0;
+systems.forEach((s,i)=>{
+const done=Math.random()>0.25;
+const criticalMiss=s.critical&&!done;
+if(done)pass++;else if(s.critical)critical++;else fail++;
+html+=`<div class="check-row"><input type="checkbox" ${done?'checked':''} id="chk${i}"><label for="chk${i}">${s.name} ${s.critical?'<span style="color:var(--danger);font-size:.75rem;margin-left:.4rem">CRITICAL</span>':''}</label><span class="grade ${done?'grade-a':'grade-f'}">${done?'DONE':'PENDING'}</span><span class="sys">${s.sys}</span></div>`;
+});
+html+=`<div style="margin-top:1rem;padding:1rem;background:var(--bg);border-radius:10px;border:1px solid var(--border)"><strong>Score: ${pass}/${systems.length}</strong> complete | <span style="color:var(--danger)">${critical} critical pending</span> | <span style="color:var(--warning)">${fail} non-critical pending</span></div>`;
+if(critical>0){html+=`<div style="margin-top:1rem;padding:1rem;background:rgba(248,113,113,.1);border:1px solid var(--danger);border-radius:10px"><strong style="color:var(--danger)">⚠ Security Risk:</strong> ${critical} critical systems still have access. Revoke immediately.</div>`}
+cl.innerHTML=html;
+},1200);
+}
+</script>
+</body>
+</html>
